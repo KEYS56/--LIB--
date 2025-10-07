@@ -1,0 +1,484 @@
+-- DH Library V3 | Full Featured Boot Loader System
+-- Created by: DH Team
+
+local Library = {
+    _VERSION = "3.0.0",
+    _AUTHOR = "DH Team"
+}
+
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+-- ==================== PRIVATE FUNCTIONS ====================
+
+local function CreateInstance(className, properties)
+    local instance = Instance.new(className)
+    for property, value in pairs(properties) do
+        if property ~= "Parent" then
+            instance[property] = value
+        end
+    end
+    if properties.Parent then
+        instance.Parent = properties.Parent
+    end
+    return instance
+end
+
+local function Tween(object, properties, duration, style, direction)
+    local tweenInfo = TweenInfo.new(
+        duration or 0.3,
+        style or Enum.EasingStyle.Quad,
+        direction or Enum.EasingDirection.Out
+    )
+    local tween = TweenService:Create(object, tweenInfo, properties)
+    tween:Play()
+    return tween
+end
+
+-- ==================== BOOT LOADER SYSTEM ====================
+
+function Library:CreateBootLoader(config)
+    local BootLoader = {}
+    
+    -- Default Configuration
+    config = config or {}
+    config.Title = config.Title or "DH V3"
+    config.SubTitle = config.SubTitle or "BR"
+    config.LogoText = config.LogoText or {"D", "H"}
+    config.LogoColors = config.LogoColors or {
+        Color3.fromRGB(140, 140, 150),
+        Color3.fromRGB(140, 100, 255)
+    }
+    config.BootMessages = config.BootMessages or {
+        {text = "INITIALIZING SYSTEM.....", delay = 0.9},
+        {text = "CATCHING IMAGES.....", delay = 0.9},
+        {text = "READING CONFIG FILES..", delay = 0.9},
+        {text = "LOADING UI MODULES.....", delay = 0.9},
+        {text = "BOOTING DH.........", delay = 1.2}
+    }
+    config.OnComplete = config.OnComplete or function() end
+    config.ShowBackground = config.ShowBackground ~= false
+    
+    local player = game.Players.LocalPlayer
+    local gui
+    local mainFrame
+    
+    function BootLoader:Init()
+        -- Create ScreenGui
+        gui = CreateInstance("ScreenGui", {
+            Name = "DH_BootUI_" .. tick(),
+            Parent = player:WaitForChild("PlayerGui"),
+            IgnoreGuiInset = true,
+            ZIndexBehavior = Enum.ZIndexBehavior.Global,
+            ResetOnSpawn = false
+        })
+        
+        -- Background Blur Effect (Optional)
+        if config.ShowBackground then
+            local bgFrame = CreateInstance("Frame", {
+                Name = "Background",
+                Size = UDim2.new(1, 0, 1, 0),
+                BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+                BackgroundTransparency = 0.3,
+                BorderSizePixel = 0,
+                Parent = gui
+            })
+        end
+        
+        -- Main Window Frame
+        mainFrame = CreateInstance("Frame", {
+            Name = "MainFrame",
+            Size = UDim2.new(0, 450, 0, 350),
+            Position = UDim2.new(0.5, -225, 0.5, -175),
+            AnchorPoint = Vector2.new(0.5, 0.5),
+            BackgroundColor3 = Color3.fromRGB(25, 25, 30),
+            BackgroundTransparency = 1,
+            BorderSizePixel = 0,
+            Parent = gui
+        })
+        
+        CreateInstance("UICorner", {
+            CornerRadius = UDim.new(0, 8),
+            Parent = mainFrame
+        })
+        
+        -- Drop Shadow
+        CreateInstance("ImageLabel", {
+            Name = "Shadow",
+            Size = UDim2.new(1, 30, 1, 30),
+            Position = UDim2.new(0, -15, 0, -15),
+            BackgroundTransparency = 1,
+            Image = "rbxasset://textures/ui/GuiImagePlaceholder.png",
+            ImageColor3 = Color3.fromRGB(0, 0, 0),
+            ImageTransparency = 0.5,
+            ScaleType = Enum.ScaleType.Slice,
+            SliceCenter = Rect.new(10, 10, 10, 10),
+            ZIndex = 0,
+            Parent = mainFrame
+        })
+        
+        -- Header Bar
+        local headerBar = CreateInstance("Frame", {
+            Name = "HeaderBar",
+            Size = UDim2.new(1, 0, 0, 40),
+            BackgroundColor3 = Color3.fromRGB(35, 35, 42),
+            BorderSizePixel = 0,
+            Parent = mainFrame
+        })
+        
+        CreateInstance("UICorner", {
+            CornerRadius = UDim.new(0, 8),
+            Parent = headerBar
+        })
+        
+        CreateInstance("Frame", {
+            Name = "HeaderBottom",
+            Size = UDim2.new(1, 0, 0, 8),
+            Position = UDim2.new(0, 0, 1, -8),
+            BackgroundColor3 = Color3.fromRGB(35, 35, 42),
+            BorderSizePixel = 0,
+            Parent = headerBar
+        })
+        
+        -- Header Title
+        CreateInstance("TextLabel", {
+            Name = "HeaderTitle",
+            Size = UDim2.new(0, 200, 1, 0),
+            Position = UDim2.new(0, 15, 0, 0),
+            BackgroundTransparency = 1,
+            Text = config.Title,
+            Font = Enum.Font.Code,
+            TextSize = 24,
+            TextColor3 = Color3.fromRGB(160, 160, 170),
+            TextXAlignment = Enum.TextXAlignment.Left,
+            TextTransparency = 1,
+            Parent = headerBar
+        })
+        
+        -- Header SubTitle
+        CreateInstance("TextLabel", {
+            Name = "HeaderSubTitle",
+            Size = UDim2.new(0, 80, 1, 0),
+            Position = UDim2.new(1, -95, 0, 0),
+            BackgroundTransparency = 1,
+            Text = config.SubTitle,
+            Font = Enum.Font.Code,
+            TextSize = 20,
+            TextColor3 = Color3.fromRGB(160, 160, 170),
+            TextXAlignment = Enum.TextXAlignment.Right,
+            TextTransparency = 1,
+            Parent = headerBar
+        })
+        
+        -- Content Area
+        local contentArea = CreateInstance("Frame", {
+            Name = "ContentArea",
+            Size = UDim2.new(1, 0, 1, -40),
+            Position = UDim2.new(0, 0, 0, 40),
+            BackgroundTransparency = 1,
+            Parent = mainFrame
+        })
+        
+        -- Logo Container
+        local logoContainer = CreateInstance("Frame", {
+            Name = "LogoContainer",
+            Size = UDim2.new(1, 0, 0, 120),
+            Position = UDim2.new(0, 0, 0, 40),
+            BackgroundTransparency = 1,
+            Parent = contentArea
+        })
+        
+        -- Logo Letters
+        for i, letter in ipairs(config.LogoText) do
+            CreateInstance("TextLabel", {
+                Name = "Logo" .. i,
+                Size = UDim2.new(0, 100, 1, 0),
+                Position = UDim2.new(0.5, -80 + (i-1)*60, 0, 0),
+                BackgroundTransparency = 1,
+                Text = letter,
+                Font = Enum.Font.GothamBold,
+                TextSize = 80,
+                TextColor3 = config.LogoColors[i] or Color3.fromRGB(140, 140, 150),
+                TextXAlignment = Enum.TextXAlignment.Center,
+                TextTransparency = 1,
+                Parent = logoContainer
+            })
+        end
+        
+        -- Boot Log Container
+        local logContainer = CreateInstance("ScrollingFrame", {
+            Name = "LogContainer",
+            Size = UDim2.new(1, -40, 0, 140),
+            Position = UDim2.new(0, 20, 0, 170),
+            BackgroundTransparency = 1,
+            BorderSizePixel = 0,
+            ScrollBarThickness = 4,
+            ScrollBarImageColor3 = Color3.fromRGB(140, 100, 255),
+            CanvasSize = UDim2.new(0, 0, 0, 0),
+            Parent = contentArea
+        })
+        
+        CreateInstance("UIListLayout", {
+            Padding = UDim.new(0, 8),
+            SortOrder = Enum.SortOrder.LayoutOrder,
+            HorizontalAlignment = Enum.HorizontalAlignment.Left,
+            Parent = logContainer
+        })
+        
+        return logContainer
+    end
+    
+    function BootLoader:AddLog(logContainer, text, delayTime)
+        local logFrame = CreateInstance("Frame", {
+            Size = UDim2.new(1, 0, 0, 20),
+            BackgroundTransparency = 1,
+            Parent = logContainer
+        })
+        
+        local function createText(txt, pos, color)
+            return CreateInstance("TextLabel", {
+                Size = UDim2.new(0, 40, 1, 0),
+                Position = UDim2.new(0, pos, 0, 0),
+                BackgroundTransparency = 1,
+                Text = txt,
+                Font = Enum.Font.Code,
+                TextSize = 14,
+                TextColor3 = color or Color3.fromRGB(120, 120, 130),
+                TextTransparency = 1,
+                TextXAlignment = Enum.TextXAlignment.Left,
+                Parent = logFrame
+            })
+        end
+        
+        local parts = {
+            createText("[", 0, Color3.fromRGB(100, 100, 110)),
+            createText("✓", 15, Color3.fromRGB(140, 100, 255)),
+            createText("]", 30, Color3.fromRGB(100, 100, 110)),
+            createText(">", 55, Color3.fromRGB(100, 100, 110)),
+            createText(text, 80, Color3.fromRGB(120, 120, 130))
+        }
+        
+        for _, lbl in ipairs(parts) do
+            Tween(lbl, {TextTransparency = 0}, 0.2)
+            task.wait(0.03)
+        end
+        
+        logContainer.CanvasSize = UDim2.new(0, 0, 0, logContainer.UIListLayout.AbsoluteContentSize.Y)
+        task.wait(delayTime or 0.8)
+    end
+    
+    function BootLoader:Animate()
+        task.spawn(function()
+            -- Fade in background
+            if config.ShowBackground then
+                Tween(gui.Background, {BackgroundTransparency = 0.3}, 0.5)
+            end
+            
+            -- Fade in main frame
+            Tween(mainFrame, {BackgroundTransparency = 0}, 0.5, Enum.EasingStyle.Back)
+            
+            task.wait(0.3)
+            
+            -- Fade in header
+            local headerBar = mainFrame.HeaderBar
+            Tween(headerBar.HeaderTitle, {TextTransparency = 0}, 0.3)
+            Tween(headerBar.HeaderSubTitle, {TextTransparency = 0}, 0.3)
+            
+            task.wait(0.5)
+            
+            -- Fade in logo
+            for i, child in ipairs(mainFrame.ContentArea.LogoContainer:GetChildren()) do
+                if child:IsA("TextLabel") then
+                    Tween(child, {TextTransparency = 0}, 0.8)
+                    task.wait(0.2)
+                end
+            end
+            
+            task.wait(1)
+            
+            -- Boot sequence
+            local logContainer = mainFrame.ContentArea.LogContainer
+            for _, log in ipairs(config.BootMessages) do
+                BootLoader:AddLog(logContainer, log.text, log.delay)
+            end
+            
+            print("✅ DH System Ready")
+            
+            -- Fade out
+            task.wait(1)
+            
+            if config.ShowBackground then
+                Tween(gui.Background, {BackgroundTransparency = 1}, 1)
+            end
+            
+            local fadeOutTween = Tween(mainFrame, {
+                BackgroundTransparency = 1,
+                Position = UDim2.new(0.5, -225, 0.5, -200)
+            }, 1)
+            
+            for _, child in pairs(mainFrame:GetDescendants()) do
+                if child:IsA("TextLabel") then
+                    Tween(child, {TextTransparency = 1}, 1)
+                elseif child:IsA("Frame") and child ~= mainFrame and child.BackgroundTransparency < 1 then
+                    Tween(child, {BackgroundTransparency = 1}, 1)
+                end
+            end
+            
+            fadeOutTween.Completed:Wait()
+            gui:Destroy()
+            
+            -- Call completion callback
+            if config.OnComplete then
+                config.OnComplete()
+            end
+        end)
+    end
+    
+    function BootLoader:Show()
+        BootLoader:Init()
+        BootLoader:Animate()
+        return BootLoader
+    end
+    
+    return BootLoader
+end
+
+-- ==================== NOTIFICATION SYSTEM ====================
+
+function Library:Notify(config)
+    config = config or {}
+    local title = config.Title or "Notification"
+    local content = config.Content or "This is a notification"
+    local duration = config.Duration or 3
+    local type = config.Type or "Info" -- Info, Success, Warning, Error
+    
+    local colors = {
+        Info = Color3.fromRGB(100, 150, 255),
+        Success = Color3.fromRGB(100, 255, 150),
+        Warning = Color3.fromRGB(255, 200, 100),
+        Error = Color3.fromRGB(255, 100, 100)
+    }
+    
+    local player = game.Players.LocalPlayer
+    local gui = player.PlayerGui:FindFirstChild("DH_Notifications")
+    
+    if not gui then
+        gui = CreateInstance("ScreenGui", {
+            Name = "DH_Notifications",
+            Parent = player.PlayerGui,
+            ResetOnSpawn = false,
+            ZIndexBehavior = Enum.ZIndexBehavior.Global
+        })
+        
+        CreateInstance("UIListLayout", {
+            Padding = UDim.new(0, 10),
+            SortOrder = Enum.SortOrder.LayoutOrder,
+            VerticalAlignment = Enum.VerticalAlignment.Bottom,
+            HorizontalAlignment = Enum.HorizontalAlignment.Right,
+            Parent = gui
+        })
+    end
+    
+    local notifFrame = CreateInstance("Frame", {
+        Size = UDim2.new(0, 300, 0, 80),
+        Position = UDim2.new(1, 320, 1, -100),
+        BackgroundColor3 = Color3.fromRGB(25, 25, 30),
+        BorderSizePixel = 0,
+        Parent = gui
+    })
+    
+    CreateInstance("UICorner", {
+        CornerRadius = UDim.new(0, 8),
+        Parent = notifFrame
+    })
+    
+    -- Color accent
+    CreateInstance("Frame", {
+        Size = UDim2.new(0, 4, 1, 0),
+        BackgroundColor3 = colors[type] or colors.Info,
+        BorderSizePixel = 0,
+        Parent = notifFrame
+    })
+    
+    CreateInstance("UICorner", {
+        CornerRadius = UDim.new(0, 8),
+        Parent = notifFrame:GetChildren()[2]
+    })
+    
+    -- Title
+    CreateInstance("TextLabel", {
+        Size = UDim2.new(1, -20, 0, 25),
+        Position = UDim2.new(0, 15, 0, 10),
+        BackgroundTransparency = 1,
+        Text = title,
+        Font = Enum.Font.GothamBold,
+        TextSize = 16,
+        TextColor3 = Color3.fromRGB(255, 255, 255),
+        TextXAlignment = Enum.TextXAlignment.Left,
+        Parent = notifFrame
+    })
+    
+    -- Content
+    CreateInstance("TextLabel", {
+        Size = UDim2.new(1, -20, 0, 40),
+        Position = UDim2.new(0, 15, 0, 35),
+        BackgroundTransparency = 1,
+        Text = content,
+        Font = Enum.Font.Gotham,
+        TextSize = 14,
+        TextColor3 = Color3.fromRGB(180, 180, 180),
+        TextXAlignment = Enum.TextXAlignment.Left,
+        TextYAlignment = Enum.TextYAlignment.Top,
+        TextWrapped = true,
+        Parent = notifFrame
+    })
+    
+    -- Animate in
+    Tween(notifFrame, {Position = UDim2.new(1, -310, 1, -100)}, 0.5, Enum.EasingStyle.Back)
+    
+    -- Auto destroy
+    task.delay(duration, function()
+        Tween(notifFrame, {
+            Position = UDim2.new(1, 320, 1, -100),
+            BackgroundTransparency = 1
+        }, 0.5)
+        
+        for _, child in pairs(notifFrame:GetDescendants()) do
+            if child:IsA("TextLabel") then
+                Tween(child, {TextTransparency = 1}, 0.5)
+            elseif child:IsA("Frame") then
+                Tween(child, {BackgroundTransparency = 1}, 0.5)
+            end
+        end
+        
+        task.wait(0.5)
+        notifFrame:Destroy()
+        
+        if #gui:GetChildren() <= 1 then
+            gui:Destroy()
+        end
+    end)
+end
+
+-- ==================== UTILITY FUNCTIONS ====================
+
+function Library:GetPlayer()
+    return game.Players.LocalPlayer
+end
+
+function Library:GetMouse()
+    return game.Players.LocalPlayer:GetMouse()
+end
+
+function Library:Print(...)
+    print("[DH]", ...)
+end
+
+function Library:Warn(...)
+    warn("[DH]", ...)
+end
+
+-- ==================== EXPORT ====================
+
+return Library
